@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8000;
 const mongoose = require("mongoose");
 const cors = require("cors");
 const passport = require("passport");
@@ -25,13 +25,12 @@ const connUri =
     process.env.TYPE == "DEVELOPMENT"
         ? process.env.MONGO_LOCAL_CONN_URL
         : process.env.MONGO_SERVER_CONN_URL;
-console.log(connUri);
 mongoose.promise = global.Promise;
 mongoose.connect(connUri);
 
 const connection = mongoose.connection;
 connection.once("open", () =>
-    console.log("Database connection established successfully!")
+    console.log("Database connection established successfully !")
 );
 
 connection.on("error", (err) => {
@@ -48,8 +47,7 @@ require("./middlewares/jwt")(passport);
 
 //=== 4 - CONFIGURE ROUTES
 //Configure Route
-const routes = require("./routes/index");
-app.use("/", routes);
+require("./routes/index")(app);
 
 //=== 5 - START SERVER
 
