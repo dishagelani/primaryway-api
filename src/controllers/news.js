@@ -8,7 +8,7 @@ exports.addNews = async (req, res) => {
         if (req.file) {
             image =
                 process.env.TYPE === "DEVELOPMENT"
-                    ? `http://localhost:3000/news/` +
+                    ? `${process.env.LOCAL_URL}/news/` +
                       req.file.filename.replace(/\s/g, "")
                     : `${process.env.PRODUCTION_URL}/news/` +
                       req.file.filename.replace(/\s/g, "");
@@ -32,7 +32,7 @@ exports.editNews = async (req, res) => {
         if (req.file) {
             image =
                 process.env.TYPE === "DEVELOPMENT"
-                    ? `http://localhost:3000/news/` +
+                    ? `${process.env.LOCAL_URL}/news/` +
                       req.file.filename.replace(/\s/g, "")
                     : `${process.env.PRODUCTION_URL}/news/` +
                       req.file.filename.replace(/\s/g, "");

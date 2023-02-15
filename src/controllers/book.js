@@ -7,7 +7,7 @@ exports.addBook = async (req, res) => {
         if (req.file) {
             image =
                 process.env.TYPE === "DEVELOPMENT"
-                    ? `http://localhost:3000/books/` +
+                    ? `${process.env.LOCAL_URL}/books/` +
                       req.file.filename.replace(/\s/g, "")
                     : `${process.env.PRODUCTION_URL}/books/` +
                       req.file.filename.replace(/\s/g, "");
@@ -31,7 +31,7 @@ exports.editBook = async (req, res) => {
         if (req.file) {
             image =
                 process.env.TYPE === "DEVELOPMENT"
-                    ? `http://localhost:3000/books/` +
+                    ? `${process.env.LOCAL_URL}/books/` +
                       req.file.filename.replace(/\s/g, "")
                     : `${process.env.PRODUCTION_URL}/books/` +
                       req.file.filename.replace(/\s/g, "");

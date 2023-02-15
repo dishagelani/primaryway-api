@@ -10,7 +10,7 @@ exports.addCourse = async (req, res) => {
         if (req.file) {
             coursePicture =
                 process.env.TYPE === "DEVELOPMENT"
-                    ? `http://localhost:3000/course_pictures/` +
+                    ? `${process.env.LOCAL_URL}/course_pictures/` +
                       req.file.filename.replace(/\s/g, "")
                     : `${process.env.PRODUCTION_URL}/course_pictures/` +
                       req.file.filename.replace(/\s/g, "");
@@ -46,7 +46,7 @@ exports.editCourse = async (req, res) => {
         if (req.file) {
             coursePicture =
                 process.env.TYPE === "DEVELOPMENT"
-                    ? `http://localhost:3000/course_pictures/` +
+                    ? `${process.env.LOCAL_URL}/course_pictures/` +
                       req.file.filename.replace(/\s/g, "")
                     : `${process.env.PRODUCTION_URL}/course_pictures/` +
                       req.file.filename.replace(/\s/g, "");

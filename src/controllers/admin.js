@@ -17,7 +17,7 @@ exports.addAdmin = async (req, res) => {
         if (req.file) {
             adminProfile =
                 process.env.TYPE === "DEVELOPMENT"
-                    ? `http://localhost:3000/admin_profile_pictures/` +
+                    ? `${process.env.LOCAL_URL}/admin_profile_pictures/` +
                       req.file.filename.replace(/\s/g, "")
                     : `${process.env.PRODUCTION_URL}/admin_profile_pictures/` +
                       req.file.filename.replace(/\s/g, "");
@@ -62,7 +62,7 @@ exports.editAdmin = async (req, res) => {
         if (req.file) {
             editadmin.adminProfile =
                 process.env.TYPE === "DEVELOPMENT"
-                    ? `http://localhost:3000/admin_profile_pictures/` +
+                    ? `${process.env.LOCAL_URL}/admin_profile_pictures/` +
                       req.file.filename.replace(/\s/g, "")
                     : `${process.env.PRODUCTION_URL}/admin_profile_pictures/` +
                       req.file.filename.replace(/\s/g, "");
@@ -144,7 +144,7 @@ exports.editAdminProfile = async (req, res) => {
         if (req.file) {
             adminProfile =
                 process.env.TYPE === "DEVELOPMENT"
-                    ? `http://localhost:3000/admin_profile_pictures/` +
+                    ? `${process.env.LOCAL_URL}/admin_profile_pictures/` +
                       req.file.filename.replace(/\s/g, "")
                     : `${process.env.PRODUCTION_URL}/admin_profile_pictures/` +
                       req.file.filename.replace(/\s/g, "");
