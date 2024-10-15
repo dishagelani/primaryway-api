@@ -101,7 +101,6 @@ exports.deleteClass = async (req, res) => {
 exports.addDateToClass = async (req, res) => {
     try {
         const {classDate, classTime, _id} = req.body;
-        console.log(req.body);
 
         const newDate = await Class.findOneAndUpdate(
             {_id},
@@ -134,7 +133,6 @@ exports.editDateInClass = async (req, res) => {
     try {
         const {classDate, classTime, dateId, _id} = req.body;
 
-        console.log(classDate);
 
         const editDate = await Class.findOneAndUpdate(
             {_id},

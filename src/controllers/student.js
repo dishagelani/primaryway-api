@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const fs = require("fs");
 const moment = require("moment");
 const today = moment.utc().startOf("day");
+const {getPublicImageURLFromFirebase, deleteImageFromFirebase} = require("../utils/index")
 
 const groupBy = (array, key) => {
     return array.reduce((result, currentValue) => {
@@ -42,7 +43,6 @@ exports.addStudent = async (req, res) => {
     //-----------------SEND ID TO STUDENT VIA EMAIL---------------------------
 
     try {
-        console.log("studnet body", req.body);
         let profilePicture = undefined;
         const existingEmail = await Student.findOne({email: req.body.email});
 
@@ -54,12 +54,7 @@ exports.addStudent = async (req, res) => {
         }
 
         if (req.file) {
-            profilePicture =
-                process.env.TYPE === "DEVELOPMENT"
-                    ? `http://localhost:3000/student_profile_pictures/` +
-                      req.file.filename.replace(/\s/g, "")
-                    : `${process.env.PRODUCTION_URL}/student_profile_pictures/` +
-                      req.file.filename.replace(/\s/g, "");
+            profilePicture = await  getPublicImageURLFromFirebase(req.file)
         }
 
         const studentId = crypto.randomBytes(4).toString("hex").toUpperCase();
@@ -94,7 +89,7 @@ exports.addStudent = async (req, res) => {
 exports.editStudent = async (req, res) => {
     try {
         const {email, _id} = req.body;
-        console.log("req body", req.body);
+        
 
         if (email) {
             const existingEmail = await Student.findOne({
@@ -117,20 +112,11 @@ exports.editStudent = async (req, res) => {
         });
 
         if (req.file) {
-            if (student.profilePicture) {
-                fs.unlinkSync(
-                    `src/public/student_profile_pictures/${student.profilePicture
-                        .split("/")
-                        .pop()}`
-                );
+            
+            let profilePicture = await  getPublicImageURLFromFirebase(req.file)
+            if (profilePicture) {
+                await deleteImageFromFirebase(student.profilePicture.split("/").pop())
             }
-            let profilePicture =
-                process.env.TYPE === "DEVELOPMENT"
-                    ? `http://localhost:3000/student_profile_pictures/` +
-                      req.file.filename.replace(/\s/g, "")
-                    : `${process.env.PRODUCTION_URL}/student_profile_pictures/` +
-                      req.file.filename.replace(/\s/g, "");
-
             student.profilePicture = profilePicture;
         }
 
@@ -159,11 +145,8 @@ exports.deleteStudent = async (req, res) => {
         if (deleteUser) {
             if (deleteUser.profilePicture) {
                 if (deleteUser.profilePicture != "")
-                    fs.unlinkSync(
-                        `src/public/student_profile_pictures/${deleteUser.profilePicture
-                            .split("/")
-                            .pop()}`
-                    );
+                    await deleteImageFromFirebase(deleteUser.profilePicture.split("/").pop())
+
             }
             Class.updateMany(
                 {},

@@ -1,16 +1,13 @@
 const Resource = require("../models/resource");
 const fs = require("fs");
+const {getPublicImageURLFromFirebase, deleteImageFromFirebase} = require("../utils/index")
+
 
 exports.addResource = async (req, res) => {
     try {
         let image = undefined;
         if (req.file) {
-            image =
-                process.env.TYPE === "DEVELOPMENT"
-                    ? `http://localhost:3000/resources/` +
-                      req.file.filename.replace(/\s/g, "")
-                    : `${process.env.PRODUCTION_URL}/resources/` +
-                      req.file.filename.replace(/\s/g, "");
+            image = await  getPublicImageURLFromFirebase(req.file)
         }
         const newResource = await new Resource({...req.body, image}).save();
         if (newResource)
@@ -29,12 +26,7 @@ exports.editResource = async (req, res) => {
         let image = editResource.image;
 
         if (req.file) {
-            image =
-                process.env.TYPE === "DEVELOPMENT"
-                    ? `http://localhost:3000/resources/` +
-                      req.file.filename.replace(/\s/g, "")
-                    : `${process.env.PRODUCTION_URL}/resources/` +
-                      req.file.filename.replace(/\s/g, "");
+            image = await  getPublicImageURLFromFirebase(req.file)
         }
         const update = await Resource.findOneAndUpdate(
             {_id},
@@ -44,14 +36,10 @@ exports.editResource = async (req, res) => {
 
         if (update) {
             if (editResource.image && req.file) {
-                fs.unlinkSync(
-                    `src/public/resources/${editResource.image
-                        .split("/")
-                        .pop()}`
-                );
+                deleteImageFromFirebase(editResource.image.split("/").pop()).then(() => res.status(200).json({message: "Updated Resource !"}))
+
             }
 
-            res.status(200).json({message: "Updated Resource !"});
         }
     } catch (err) {
         console.log(err.message);
@@ -65,13 +53,9 @@ exports.deleteResource = async (req, res) => {
         const deleteResource = await Resource.findOneAndDelete({_id});
         if (deleteResource) {
             if (deleteResource.image) {
-                fs.unlinkSync(
-                    `src/public/resources/${deleteResource.image
-                        .split("/")
-                        .pop()}`
-                );
+                deleteImageFromFirebase(deleteResource.image.split("/").pop()).then(() => res.status(200).json({message: "Resource deleted successfully !"}))
+
             }
-            res.status(200).json({message: "Resource deleted successfully !"});
         }
     } catch (err) {
         console.log(err.message);

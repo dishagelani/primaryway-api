@@ -4,6 +4,7 @@ const fs = require("fs");
 const Class = require("../models/class");
 const moment = require("moment");
 const today = moment.utc().startOf("day");
+const {getPublicImageURLFromFirebase , deleteImageFromFirebase} = require("../utils/index")
 
 const groupBy = (array, key) => {
     return array.reduce((result, currentValue) => {
@@ -68,12 +69,7 @@ exports.addTutor = async (req, res) => {
         }
 
         if (req.file) {
-            profilePicture =
-                process.env.TYPE === "DEVELOPMENT"
-                    ? `http://localhost:3000/tutor_profile_pictures/` +
-                      req.file.filename.replace(/\s/g, "")
-                    : `${process.env.PRODUCTION_URL}/tutor_profile_pictures/` +
-                      req.file.filename.replace(/\s/g, "");
+            profilePicture = await  getPublicImageURLFromFirebase(req.file)
         }
 
         const tutorId = crypto.randomBytes(4).toString("hex").toUpperCase();
@@ -146,23 +142,15 @@ exports.editTutor = async (req, res) => {
         });
 
         if (req.file) {
-            tutor.profilePicture =
-                process.env.TYPE === "DEVELOPMENT"
-                    ? `http://localhost:3000/tutor_profile_pictures/` +
-                      req.file.filename.replace(/\s/g, "")
-                    : `${process.env.PRODUCTION_URL}/tutor_profile_pictures/` +
-                      req.file.filename.replace(/\s/g, "");
+            tutor.profilePicture = await  getPublicImageURLFromFirebase(req.file)
         }
 
         await tutor
             .save()
-            .then((updatedTutor) => {
+            .then(async (updatedTutor) => {
                 if (req.file && profilePicture) {
-                    fs.unlinkSync(
-                        `src/public/tutor_profile_pictures/${profilePicture
-                            .split("/")
-                            .pop()}`
-                    );
+                   await deleteImageFromFirebase(profilePicture.split("/").pop())
+
                 }
                 res.status(200).json({
                     message: "Updated tutor details successfully !",
@@ -191,18 +179,9 @@ exports.setupTutorProfile = async (req, res) => {
         }
 
         if (req.file) {
-            if (user.profilePicture)
-                fs.unlinkSync(
-                    `src/public/tutor_profile_pictures/${user.profilePicture
-                        .split("/")
-                        .pop()}`
-                );
-            profilePicture =
-                process.env.TYPE === "DEVELOPMENT"
-                    ? `http://localhost:3000/tutor_profile_pictures/` +
-                      req.file.filename.replace(/\s/g, "")
-                    : `${process.env.PRODUCTION_URL}/tutor_profile_pictures/` +
-                      req.file.filename.replace(/\s/g, "");
+          profilePicture = await  getPublicImageURLFromFirebase(req.file)
+            if (profilePicture)
+                await deleteImageFromFirebase(user.profilePicture.split("/").pop())
 
             user.profilePicture = profilePicture;
         }
@@ -239,11 +218,8 @@ exports.deleteTutor = async (req, res) => {
         if (deleteUser) {
             if (deleteUser.profilePicture) {
                 if (deleteUser.profilePicture != "")
-                    fs.unlinkSync(
-                        `src/public/tutor_profile_pictures/${deleteUser.profilePicture
-                            .split("/")
-                            .pop()}`
-                    );
+                   await deleteImageFromFirebase(deleteUser.profilePicture.split("/").pop())
+
             }
             Class.updateMany({tutor: _id}, {tutor: undefined}).then(() =>
                 res.status(200).json({message: "Deleted tutor successfully !"})

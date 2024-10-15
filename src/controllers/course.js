@@ -2,18 +2,14 @@ const Course = require("../models/course");
 const Class = require("../models/class");
 const fs = require("fs");
 const moment = require("moment");
+const {getPublicImageURLFromFirebase, deleteImageFromFirebase} = require("../utils/index")
 
 exports.addCourse = async (req, res) => {
     try {
-        console.log("req.body", req.body, "req.file", req.file);
         let coursePicture = undefined;
         if (req.file) {
-            coursePicture =
-                process.env.TYPE === "DEVELOPMENT"
-                    ? `${process.env.LOCAL_URL}/course_pictures/` +
-                      req.file.filename.replace(/\s/g, "")
-                    : `${process.env.PRODUCTION_URL}/course_pictures/` +
-                      req.file.filename.replace(/\s/g, "");
+            const file = req.file;
+            coursePicture = await  getPublicImageURLFromFirebase(file)
         }
         const newCourse = await new Course({
             ...req.body,
@@ -38,18 +34,13 @@ exports.editCourse = async (req, res) => {
     try {
         const {_id} = req.params;
 
-        console.log(req.body);
 
         const course = await Course.findOne({_id});
         let coursePicture = course.coursePicture;
 
         if (req.file) {
-            coursePicture =
-                process.env.TYPE === "DEVELOPMENT"
-                    ? `${process.env.LOCAL_URL}/course_pictures/` +
-                      req.file.filename.replace(/\s/g, "")
-                    : `${process.env.PRODUCTION_URL}/course_pictures/` +
-                      req.file.filename.replace(/\s/g, "");
+            const file = req.file;
+            coursePicture = await  getPublicImageURLFromFirebase(file)
         }
 
         const savecourse = await Course.findOneAndUpdate(
@@ -58,13 +49,9 @@ exports.editCourse = async (req, res) => {
         );
         if (savecourse) {
             if (req.file && course.coursePicture) {
-                fs.unlinkSync(
-                    `src/public/course_pictures/${course.coursePicture
-                        .split("/")
-                        .pop()}`
-                );
+                deleteImageFromFirebase(course.coursePicture.split("/").pop()).then(() => res.status(200).json({message: "Course updated successfullyd !"}))
+
             }
-            res.status(200).json({message: "Course updated successfully! "});
         }
     } catch (error) {
         console.log(error);
@@ -81,11 +68,8 @@ exports.deleteCourse = async (req, res) => {
         if (deleteCourse) {
             if (deleteCourse.coursePicture) {
                 if (deleteCourse.coursePicture != "")
-                    fs.unlinkSync(
-                        `src/public/course_pictures/${deleteCourse.coursePicture
-                            .split("/")
-                            .pop()}`
-                    );
+                    await deleteImageFromFirebase(deleteCourse.coursePicture.split("/").pop())
+
             }
 
             Class.deleteMany({courseId: _id}).then(() =>

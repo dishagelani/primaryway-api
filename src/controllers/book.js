@@ -1,16 +1,13 @@
 const Book = require("../models/book");
-const fs = require("fs");
+const fs = require("fs"); 
+const {getPublicImageURLFromFirebase, deleteImageFromFirebase} = require("../utils/index")
 
 exports.addBook = async (req, res) => {
     try {
         let image = undefined;
         if (req.file) {
-            image =
-                process.env.TYPE === "DEVELOPMENT"
-                    ? `${process.env.LOCAL_URL}/books/` +
-                      req.file.filename.replace(/\s/g, "")
-                    : `${process.env.PRODUCTION_URL}/books/` +
-                      req.file.filename.replace(/\s/g, "");
+            const file = req.file;
+            image = await  getPublicImageURLFromFirebase(file)
         }
         const newBook = await new Book({...req.body, image}).save();
         if (newBook)
@@ -29,12 +26,8 @@ exports.editBook = async (req, res) => {
         let image = editBook.image;
 
         if (req.file) {
-            image =
-                process.env.TYPE === "DEVELOPMENT"
-                    ? `${process.env.LOCAL_URL}/books/` +
-                      req.file.filename.replace(/\s/g, "")
-                    : `${process.env.PRODUCTION_URL}/books/` +
-                      req.file.filename.replace(/\s/g, "");
+            const file = req.file;
+            image = await  getPublicImageURLFromFirebase(file)
         }
         const update = await Book.findOneAndUpdate(
             {_id},
@@ -44,12 +37,8 @@ exports.editBook = async (req, res) => {
 
         if (update) {
             if (editBook.image && req.file) {
-                fs.unlinkSync(
-                    `src/public/books/${editBook.image.split("/").pop()}`
-                );
+                deleteImageFromFirebase(editBook.image.split("/").pop()).then(() => res.status(200).json({message: "Updated Book !"}))
             }
-
-            res.status(200).json({message: "Updated Book !"});
         }
     } catch (err) {
         console.log(err.message);
@@ -64,11 +53,9 @@ exports.deleteBook = async (req, res) => {
         if (deleteBook) {
             if (deleteBook.image) {
                 if (deleteBook.image != "")
-                    fs.unlinkSync(
-                        `src/public/books/${deleteBook.image.split("/").pop()}`
-                    );
+                    deleteImageFromFirebase(deleteBook.image.split("/").pop()).then(() => res.status(200).json({message: "Book deleted successfully !"}))
+
             }
-            res.status(200).json({message: "Book deleted successfully !"});
         }
     } catch (err) {
         console.log(err.message);

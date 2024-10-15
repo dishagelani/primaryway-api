@@ -1,17 +1,14 @@
 const News = require("../models/news");
 const fs = require("fs");
+const {getPublicImageURLFromFirebase, deleteImageFromFirebase} = require("../utils/index")
+
 
 exports.addNews = async (req, res) => {
     try {
-        console.log(req.body);
         let image = undefined;
         if (req.file) {
-            image =
-                process.env.TYPE === "DEVELOPMENT"
-                    ? `${process.env.LOCAL_URL}/news/` +
-                      req.file.filename.replace(/\s/g, "")
-                    : `${process.env.PRODUCTION_URL}/news/` +
-                      req.file.filename.replace(/\s/g, "");
+            const file = req.file;
+            image = await  getPublicImageURLFromFirebase(file)
         }
         const newNews = await new News({...req.body, image}).save();
         if (newNews)
@@ -30,12 +27,7 @@ exports.editNews = async (req, res) => {
         let image = editNews.image;
 
         if (req.file) {
-            image =
-                process.env.TYPE === "DEVELOPMENT"
-                    ? `${process.env.LOCAL_URL}/news/` +
-                      req.file.filename.replace(/\s/g, "")
-                    : `${process.env.PRODUCTION_URL}/news/` +
-                      req.file.filename.replace(/\s/g, "");
+            image = await  getPublicImageURLFromFirebase(file)
         }
         const update = await News.findOneAndUpdate(
             {_id},
@@ -45,12 +37,10 @@ exports.editNews = async (req, res) => {
 
         if (update) {
             if (editNews.image && req.file) {
-                fs.unlinkSync(
-                    `src/public/news/${editNews.image.split("/").pop()}`
-                );
+                deleteImageFromFirebase(editNews.image.split("/").pop()).then(() => res.status(200).json({message: "Updated News !"}))
+
             }
 
-            res.status(200).json({message: "Updated News !"});
         }
     } catch (err) {
         console.log(err.message);
@@ -65,11 +55,9 @@ exports.deleteNews = async (req, res) => {
         if (deleteNews) {
             if (deleteNews.image) {
                 if (deleteNews.image != "")
-                    fs.unlinkSync(
-                        `src/public/news/${deleteNews.image.split("/").pop()}`
-                    );
+                    deleteImageFromFirebase(deleteNews.image.split("/").pop()).then(() => res.status(200).json({message: "News deleted successfully !"}))
+
             }
-            res.status(200).json({message: "News deleted successfully !"});
         }
     } catch (err) {
         console.log(err.message);

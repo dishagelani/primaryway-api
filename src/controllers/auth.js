@@ -36,7 +36,7 @@ exports.loginAdmin = async (req, res) => {
         if (!admin) {
             return res.status(401).json({
                 message:
-                    "The email address you have entered is not associated with any account. Register yourself first.",
+                    "Aceess denied ! The email address you have entered is not associated with any account",
             });
         }
         if (!admin.comparePassword(pwd.trim())) {

@@ -2,7 +2,6 @@ const Class = require("../models/class");
 
 exports.addQuiz = async (req, res) => {
     try {
-        console.log(req.body);
         const {date, time, classId, courseId, name} = req.body;
 
         const newQuiz = await Class.findOneAndUpdate(
@@ -34,7 +33,6 @@ exports.editQuiz = async (req, res) => {
         const {classId, quizId} = req.params;
         const {name, date, time} = req.body;
 
-        console.log(req.body);
         const editQuiz = await Class.findOneAndUpdate(
             {_id: classId},
             {
@@ -63,7 +61,6 @@ exports.editQuiz = async (req, res) => {
 
 exports.deleteQuiz = async (req, res) => {
     try {
-        console.log(req.body);
         const {classId, quizId} = req.params;
         const deleteQuiz = await Class.findOneAndUpdate(
             {_id: classId},

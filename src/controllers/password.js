@@ -20,7 +20,6 @@ exports.forgetAdmin = async (req, res) => {
 
         const password = crypto.randomBytes(4).toString("hex");
 
-        console.log(password);
 
         const subject = "Password reset request";
         const to = email;
